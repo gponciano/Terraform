@@ -19,10 +19,10 @@ module "cloudfront" {
   depends_on = [module.s3]
 }
 
-module "sqs" {
+/* module "sqs" {
   source  = "terraform-aws-modules/sqs/aws"
 
-  name = "example"
+  name = "sqs-initialization"
 
   create_dlq = true
  
@@ -31,3 +31,4 @@ module "sqs" {
     Iac = true
   }
 }
+*/
