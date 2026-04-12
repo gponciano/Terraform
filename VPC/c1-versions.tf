@@ -1,0 +1,1 @@
+# Defines required Terraform version and AWS provider block

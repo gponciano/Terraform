@@ -1,0 +1,1 @@
+# Declares input variables used throughout the config
