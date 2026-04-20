@@ -55,17 +55,49 @@ resource "aws_eip" "nat" {
 
 resource "aws_nat_gateway" "nat" {
   allocation_id = aws_eip.nat.id
-  subnet_id     = aws_subnet.public.id
+  subnet_id     = values(aws_subnet.public)[0].id
 
-  tags = {
-    Name = "gw NAT"
-  }
+  tags = merge(var.tags, { Name = "{var.environment_name}-nat-gateway" })
 
   # To ensure proper ordering, it is recommended to add an explicit dependency
   # on the Internet Gateway for the VPC.
-  depends_on = [aws_internet_gateway.example]
+  depends_on = [aws_internet_gateway.igw]
 }
 # Resource: Public Route Table
+resource "aws_route_table" "public_rt" {
+  vpc_id = aws_vpc.main.id
+
+  route {
+    cidr_block = "0.0.0.0/0"
+    gateway_id = aws_internet_gateway.igw.id
+  }
+
+  tags = merge(var.tags, { Name = "{var.environment_name}-public-rt" })
+
+}
 # Resource: Public Route Table Associate to Public Subnet
-# Resource: VPC
-# Resource: VPC
+resource "aws_route_table_association" "public_rt_assoc" {
+  for_each = aws_subnet.public
+  subnet_id      = each.value.id
+  route_table_id = aws_route_table.public_rt.id
+}
+
+# Resource: Private Route Table
+resource "aws_route_table" "private_rt" {
+  vpc_id = aws_vpc.main.id
+
+  route {
+    cidr_block = "0.0.0.0/0"
+    nat_gateway_id = aws_nat_gateway.nat.id
+  }
+
+  tags = merge(var.tags, { Name = "{var.environment_name}-private-rt" })
+
+}
+
+# Resource: Private Route Table Associate to Private Subnet
+resource "aws_route_table_association" "private_rt_assoc" {
+  for_each = aws_subnet.public
+  subnet_id      = each.value.id
+  route_table_id = aws_route_table.private_rt.id
+}
