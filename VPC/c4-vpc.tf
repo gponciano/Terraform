@@ -5,7 +5,7 @@ resource "aws_vpc" "main" {
   cidr_block = var.vpc_cidr
   enable_dns_support = true
   enable_dns_hostnames = true
-  tags = merge(var.tags, { Name = "{var.environment_name}-vpc" })
+  tags = merge(var.tags, { Name = "${var.environment_name}-vpc" })
 
   lifecycle {
     prevent_destroy = false
@@ -17,7 +17,7 @@ resource "aws_vpc" "main" {
 resource "aws_internet_gateway" "igw" {
   vpc_id = aws_vpc.main.id
 
-  tags = merge(var.tags, { Name = "{var.environment_name}-igw" })
+  tags = merge(var.tags, { Name = "${var.environment_name}-igw" })
 }
 
 # Resource: Public Subnets
@@ -29,7 +29,7 @@ resource "aws_subnet" "public" {
   availability_zone = each.key
   map_public_ip_on_launch = true
 
-  tags = merge(var.tags, { Name = "{var.environment_name}-public-${each.key}" })
+  tags = merge(var.tags, { Name = "${var.environment_name}-public-${each.key}" })
 }
 
 # Resource: Private Subnets
@@ -40,15 +40,12 @@ resource "aws_subnet" "private" {
   cidr_block = each.value
   availability_zone = each.key
 
-  tags = merge(var.tags, { Name = "{var.environment_name}-private-${each.key}" })
+  tags = merge(var.tags, { Name = "${var.environment_name}-private-${each.key}" })
 }
 
 # Resource: Elastic IP for NAT Gateway
 resource "aws_eip" "nat" {
-  instance = aws_instance.web.id
-  domain   = "vpc"
-
-  tags = merge(var.tags, { Name = "{var.environment_name}-nat-eip" })
+  tags = merge(var.tags, { Name = "${var.environment_name}-nat-eip" })
 }
 
 # Resource: NAT Gateway
@@ -57,7 +54,7 @@ resource "aws_nat_gateway" "nat" {
   allocation_id = aws_eip.nat.id
   subnet_id     = values(aws_subnet.public)[0].id
 
-  tags = merge(var.tags, { Name = "{var.environment_name}-nat-gateway" })
+  tags = merge(var.tags, { Name = "${var.environment_name}-nat-gateway" })
 
   # To ensure proper ordering, it is recommended to add an explicit dependency
   # on the Internet Gateway for the VPC.
@@ -72,7 +69,7 @@ resource "aws_route_table" "public_rt" {
     gateway_id = aws_internet_gateway.igw.id
   }
 
-  tags = merge(var.tags, { Name = "{var.environment_name}-public-rt" })
+  tags = merge(var.tags, { Name = "${var.environment_name}-public-rt" })
 
 }
 # Resource: Public Route Table Associate to Public Subnet
@@ -91,13 +88,13 @@ resource "aws_route_table" "private_rt" {
     nat_gateway_id = aws_nat_gateway.nat.id
   }
 
-  tags = merge(var.tags, { Name = "{var.environment_name}-private-rt" })
+  tags = merge(var.tags, { Name = "${var.environment_name}-private-rt" })
 
 }
 
 # Resource: Private Route Table Associate to Private Subnet
 resource "aws_route_table_association" "private_rt_assoc" {
-  for_each = aws_subnet.public
+  for_each = aws_subnet.private
   subnet_id      = each.value.id
   route_table_id = aws_route_table.private_rt.id
 }
