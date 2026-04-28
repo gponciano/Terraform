@@ -8,12 +8,16 @@ terraform {
       source  = "hashicorp/aws"
       version = "~> 6.0"
     }
-    random = {
-      source = "hashicorp/random"
-      version = "~> 3.0"
-    }
   }
-  
+
+# Remote Backend
+backend "s3" {
+  bucket = "tfstate-dev-us-east-2-vsut8t"
+  key = "vpc/dev/terraform.tfstate"
+  region = "us-east-2"
+  encrypt = true
+  use_lockfile = true
+  }
 }
 
 # Provider block
