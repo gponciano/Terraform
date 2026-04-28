@@ -1,6 +1,5 @@
 # Defines output values like VPC ID, subnet IDs, etc.
 
-
 output "vpc_id" {
   value       = aws_vpc.main.id
   description = "The ID of the created VPC"
